@@ -1,27 +1,32 @@
-# FILE 3: dashboard_server.py (Updated for Render)
-"""
 #!/usr/bin/env python3
+"""
+JobHunter Dashboard Server - Render Compatible
+Serves the web dashboard and provides job data via API
+"""
 import os
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import json
 import sqlite3
+from urllib.parse import urlparse
 
 PORT = int(os.environ.get('PORT', 8000))
 
 class JobHunterHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        from urllib.parse import urlparse
         parsed_path = urlparse(self.path)
         
+        # Serve jobs.json API
         if parsed_path.path == '/jobs.json':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
+            # Get jobs from database
             jobs = self.get_jobs_from_db()
             self.wfile.write(json.dumps(jobs).encode())
         
+        # Serve dashboard.html
         elif parsed_path.path == '/' or parsed_path.path == '/dashboard.html':
             self.path = '/dashboard.html'
             return SimpleHTTPRequestHandler.do_GET(self)
@@ -30,10 +35,18 @@ class JobHunterHandler(SimpleHTTPRequestHandler):
             return SimpleHTTPRequestHandler.do_GET(self)
     
     def get_jobs_from_db(self):
+        """Fetch jobs from SQLite database"""
         try:
+            # Check if database exists
+            if not os.path.exists('jobhunter.db'):
+                print("⚠️  Database not found - creating empty one")
+                self.create_empty_db()
+                return []
+            
             conn = sqlite3.connect('jobhunter.db')
             c = conn.cursor()
             
+            # Updated query to include scrape_date
             c.execute('''SELECT job_id, title, company, location, match_score,
                                url, tags, description, salary, posted_date, source, scrape_date
                         FROM jobs
@@ -59,12 +72,65 @@ class JobHunterHandler(SimpleHTTPRequestHandler):
             
             conn.close()
             return jobs
+        
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"❌ Error fetching jobs: {e}")
             return []
+    
+    def create_empty_db(self):
+        """Create empty database structure"""
+        try:
+            conn = sqlite3.connect('jobhunter.db')
+            c = conn.cursor()
+            
+            c.execute('''CREATE TABLE IF NOT EXISTS jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id TEXT UNIQUE,
+                title TEXT,
+                company TEXT,
+                location TEXT,
+                salary TEXT,
+                url TEXT,
+                description TEXT,
+                requirements TEXT,
+                posted_date TEXT,
+                source TEXT,
+                match_score INTEGER,
+                tags TEXT,
+                scrape_date TEXT,
+                status TEXT DEFAULT 'new',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )''')
+            
+            conn.commit()
+            conn.close()
+            print("✅ Empty database created")
+        except Exception as e:
+            print(f"❌ Error creating database: {e}")
+
+def main():
+    print("="*60)
+    print(" "*15 + "🦅 HUSTLEHAWK DASHBOARD")
+    print("="*60)
+    print(f"\n✓ Server starting on port {PORT}...")
+    print(f"\n🌐 Server will be available at:")
+    print(f"   http://0.0.0.0:{PORT}")
+    print("\n💡 Features:")
+    print("   📅 Today's jobs filter")
+    print("   📆 This week filter")
+    print("   🗑️  Auto-deletes jobs older than 7 days")
+    print("\n💡 Press Ctrl+C to stop")
+    print("="*60 + "\n")
+    
+    # Bind to 0.0.0.0 for Render (important!)
+    server = HTTPServer(('0.0.0.0', PORT), JobHunterHandler)
+    
+    try:
+        print(f"🚀 Server running on http://0.0.0.0:{PORT}")
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n\n👋 Server stopped!")
+        server.shutdown()
 
 if __name__ == '__main__':
-    print(f"🦅 HustleHawk Dashboard running on port {PORT}")
-    server = HTTPServer(('0.0.0.0', PORT), JobHunterHandler)
-    server.serve_forever()
-"""
+    main()
