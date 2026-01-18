@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobHunter Pro Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            opacity: 0.9;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .date-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .job-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .match-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        .match-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .match-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .match-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .fresh-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .company {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .location {
+            color: #888;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .tag {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .job-meta {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+        }
+
+        .empty-state h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .stat-card .number {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦅 HustleHawk Dashboard</h1>
+            <p style="color: #666;">Personal Job Search Engine</p>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="total-jobs">0</div>
+                    <div class="label">Total Jobs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="today-jobs">0</div>
+                    <div class="label">Today's Jobs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="high-matches">0</div>
+                    <div class="label">High Matches</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="avg-match">0%</div>
+                    <div class="label">Avg Match</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search" placeholder="🔍 Search jobs..." onkeyup="filterJobs()">
+            </div>
+            
+            <div class="date-filters">
+                <button class="filter-btn active" data-filter="today" onclick="setDateFilter('today')">
+                    📅 Today
+                </button>
+                <button class="filter-btn" data-filter="week" onclick="setDateFilter('week')">
+                    📆 This Week
+                </button>
+                <button class="filter-btn" data-filter="all" onclick="setDateFilter('all')">
+                    📊 All Jobs
+                </button>
+            </div>
+
+            <button class="filter-btn" data-match="high" onclick="setMatchFilter('high')">
+                High Match (60%+)
+            </button>
+        </div>
+
+        <div class="jobs-grid" id="jobs-container">
+            <div class="empty-state">
+                <h2>Loading jobs...</h2>
+                <p>Please wait while we fetch your listings</p>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadJobs()" title="Refresh">🔄</button>
+
+    <script>
+        let allJobs = [];
+        let currentDateFilter = 'today';
+        let currentMatchFilter = 'all';
+
+        // Load jobs from backend
+        async function loadJobs() {
+            try {
+                const response = await fetch('jobs.json');
+                if (response.ok) {
+                    allJobs = await response.json();
+                    updateStats();
+                    displayJobs();
+                } else {
+                    showEmptyState('No jobs found. Run the scraper to find jobs!');
+                }
+            } catch (error) {
+                showEmptyState('Error loading jobs. Is the server running?');
+            }
+        }
+
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayJobs = allJobs.filter(j => j.scrape_date === today);
+            
+            document.getElementById('total-jobs').textContent = allJobs.length;
+            document.getElementById('today-jobs').textContent = todayJobs.length;
+            document.getElementById('high-matches').textContent = allJobs.filter(j => j.match_score >= 60).length;
+
+            const avgMatch = allJobs.length > 0
+                ? Math.round(allJobs.reduce((sum, j) => sum + j.match_score, 0) / allJobs.length)
+                : 0;
+            document.getElementById('avg-match').textContent = avgMatch + '%';
+        }
+
+        function displayJobs() {
+            const container = document.getElementById('jobs-container');
+            let filteredJobs = [...allJobs];
+
+            // Apply date filter
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            if (currentDateFilter === 'today') {
+                filteredJobs = filteredJobs.filter(j => j.scrape_date === todayStr);
+            } else if (currentDateFilter === 'week') {
+                const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const weekAgoStr = weekAgo.toISOString().split('T')[0];
+                filteredJobs = filteredJobs.filter(j => j.scrape_date >= weekAgoStr);
+            }
+
+            // Apply match filter
+            if (currentMatchFilter === 'high') {
+                filteredJobs = filteredJobs.filter(j => j.match_score >= 60);
+            }
+
+            // Apply search filter
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            if (searchTerm) {
+                filteredJobs = filteredJobs.filter(job =>
+                    job.title.toLowerCase().includes(searchTerm) ||
+                    job.company.toLowerCase().includes(searchTerm) ||
+                    (job.tags && job.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+                );
+            }
+
+            if (filteredJobs.length === 0) {
+                showEmptyState('No jobs found with current filters');
+                return;
+            }
+
+            // Sort by match score
+            filteredJobs.sort((a, b) => b.match_score - a.match_score);
+
+            container.innerHTML = filteredJobs.map(job => {
+                const isToday = job.scrape_date === todayStr;
+                
+                return `
+                <div class="job-card">
+                    <div class="job-header">
+                        <div style="flex: 1;">
+                            <div class="job-title">
+                                ${job.title}
+                                ${isToday ? '<span class="fresh-badge">🆕 NEW</span>' : ''}
+                            </div>
+                            <div class="company">
+                                🏢 ${job.company}
+                            </div>
+                            <div class="location">
+                                📍 ${job.location}
+                            </div>
+                        </div>
+                        <div class="match-badge ${getMatchClass(job.match_score)}">
+                            ${job.match_score}%
+                        </div>
+                    </div>
+
+                    ${job.tags ? `
+                        <div class="tags">
+                            ${job.tags.slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+
+                    <div class="job-meta">
+                        📡 ${job.source} • 📅 ${formatDate(job.scrape_date)}
+                    </div>
+
+                    <div class="job-actions">
+                        <button class="btn btn-primary" onclick="openJob('${job.url}')">
+                            🚀 Apply Now
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyLink('${job.url}')">
+                            📋 Copy Link
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function getMatchClass(score) {
+            if (score >= 60) return 'match-high';
+            if (score >= 40) return 'match-medium';
+            return 'match-low';
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const today = new Date();
+            const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            return dateStr;
+        }
+
+        function setDateFilter(filter) {
+            currentDateFilter = filter;
+            document.querySelectorAll('.date-filters .filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            displayJobs();
+        }
+
+        function setMatchFilter(filter) {
+            const btn = document.querySelector('[data-match="high"]');
+            if (currentMatchFilter === 'high') {
+                currentMatchFilter = 'all';
+                btn.classList.remove('active');
+            } else {
+                currentMatchFilter = 'high';
+                btn.classList.add('active');
+            }
+            displayJobs();
+        }
+
+        function filterJobs() {
+            displayJobs();
+        }
+
+        function openJob(url) {
+            window.open(url, '_blank');
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url);
+            alert('✓ Link copied to clipboard!');
+        }
+
+        function showEmptyState(message) {
+            const container = document.getElementById('jobs-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h2>No jobs found</h2>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // Initialize
+        loadJobs();
+
+        // Auto-refresh every 5 minutes
+        setInterval(loadJobs, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

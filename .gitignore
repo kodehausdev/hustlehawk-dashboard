@@ -1,0 +1,8 @@
+# FILE 4: .gitignore
+"""
+__pycache__/
+*.pyc
+.env
+venv/
+*.db-journal
+"""
