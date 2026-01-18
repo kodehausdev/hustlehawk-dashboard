@@ -1,12 +1,10 @@
-# FILE 1: render.yaml (Render configuration)
-"""
 services:
   - type: web
     name: hustlehawk-dashboard
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python dashboard_server.py"
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
-"""
